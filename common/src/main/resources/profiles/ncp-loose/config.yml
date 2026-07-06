@@ -1,0 +1,76 @@
+# Optional NCP-style loose profile overlay.
+# Copy these values into config.yml, or use them as a reference for compatibility-heavy servers.
+
+compatibility:
+    profile: ncp-loose
+    gameplay:
+        mode: monitor
+        modify-packets: false
+        setbacks: false
+    safety:
+        mode: enforce
+
+Simulation:
+    threshold: 0.05
+    immediate-setback-threshold: -1
+    max-advantage: -1
+    setback-violation-threshold: 1000000
+
+Phase:
+    setbackvl: -1
+
+SetbackBlocker:
+    block-movement-during-setback: false
+
+NoSlow:
+    setbackvl: -1
+
+Knockback:
+    immediate-setback-threshold: -1
+    max-advantage: -1
+    setbackvl: -1
+
+Explosion:
+    setbackvl: -1
+
+TimerA:
+    setbackvl: -1
+    drift: 500
+    cancel-packets: false
+
+TimerLimit:
+    ping-abuse-limit-threshold: -1
+
+VehicleTimer:
+    setbackvl: -1
+    cancel-packets: false
+
+Reach:
+    block-impossible-hits: false
+    max-distance: 4.2
+    extra-distance: 0
+    max-attacks-per-tick: 10
+    max-attacks-per-tick-action: alert
+
+AirLiquidPlace:
+    cancelvl: -1
+
+FarPlace:
+    cancelvl: -1
+
+PositionPlace:
+    cancelvl: -1
+
+RotationPlace:
+    cancelvl: -1
+
+FabricatedPlace:
+    cancelvl: 5
+
+exploit:
+    cancel-invalid-elytra-start: false
+    allow-building-on-ghostblocks: true
+    allow-sprint-jumping-when-using-elytra: true
+
+experimental-checks: false
+packet-spam-threshold: -1

@@ -1,10 +1,9 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.api.storage.verbose.Verbose;
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.CancellableBlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -17,7 +16,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
 
 @CheckData(name = "WrongBreak", stableKey = "grim.breaking.wrong_break", description = "Sent block break progress for a different block than the one being mined")
-public class WrongBreak extends Check implements BlockBreakCheck {
+public class WrongBreak extends CancellableBlockBreakCheck {
     private static final Verbose V =
             Verbose.of("action={digging}, last=[{mcpos}|null], pos={mcpos}");
 
@@ -65,7 +64,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
                             .mcPos(lastBlock == null ? 0 : lastBlock.x, lastBlock == null ? 0 : lastBlock.y, lastBlock == null ? 0 : lastBlock.z)
                             .mcPos(pos.x, pos.y, pos.z);
                     if (flag(buf)) {
-                        if (shouldModifyPackets()) {
+                        if (shouldCancelBlockBreak()) {
                             blockBreak.cancel();
                         }
                     }
@@ -88,7 +87,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
                         .mcPos(lastBlock == null ? 0 : lastBlock.x, lastBlock == null ? 0 : lastBlock.y, lastBlock == null ? 0 : lastBlock.z)
                         .mcPos(pos.x, pos.y, pos.z);
                 if (flag(buf)) {
-                    if (shouldModifyPackets()) {
+                    if (shouldCancelBlockBreak()) {
                         blockBreak.cancel();
                     }
                 }

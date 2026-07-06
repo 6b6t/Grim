@@ -152,7 +152,9 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
     public void onPredictionComplete(PredictionComplete predictionComplete) {
         if (!player.canSkipTicks()) {
             if (setback) {
-                setbackIfAboveSetbackVL();
+                if (shouldModifyPackets()) {
+                    setbackIfAboveSetbackVL();
+                }
                 setback = false;
             }
             return;
@@ -162,7 +164,9 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
             for (FlagData data : flags) {
                 if (flag(write(data.type(), data.attacking(), data.rightClicking(), data.picking(),
                         data.releasing(), data.digging())) && setback) {
-                    setbackIfAboveSetbackVL();
+                    if (shouldModifyPackets()) {
+                        setbackIfAboveSetbackVL();
+                    }
                     setback = false;
                 }
             }

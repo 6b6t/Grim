@@ -1,17 +1,16 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.api.storage.verbose.Verbose;
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.CancellableBlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
 @CheckData(name = "InvalidBreak", stableKey = "grim.breaking.invalid_break", description = "Sent impossible block face id")
-public class InvalidBreak extends Check implements BlockBreakCheck {
+public class InvalidBreak extends CancellableBlockBreakCheck {
     private static final Verbose V = Verbose.of("face={sint}, action={digging}");
 
     public InvalidBreak(GrimPlayer player) {
@@ -28,7 +27,7 @@ public class InvalidBreak extends Check implements BlockBreakCheck {
             // ban
             if (flag(V.write(verbose())
                     .sint(blockBreak.faceId)
-                    .uint(VerboseCodecs.enumId(blockBreak.action))) && shouldModifyPackets()) {
+                    .uint(VerboseCodecs.enumId(blockBreak.action))) && shouldCancelBlockBreak()) {
                 blockBreak.cancel();
             }
         }

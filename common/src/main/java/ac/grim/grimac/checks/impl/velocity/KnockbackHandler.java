@@ -208,9 +208,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
             if (player.likelyKB.offset > offsetToFlag) {
                 threshold = Math.min(threshold + player.likelyKB.offset, ceiling);
                 if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
-                    if (!isNoSetbackPermission()) {
-                        player.getSetbackTeleportUtil().executeViolationSetback();
-                    }
+                    executeViolationSetback();
                 } else {
                     boolean ignored = player.likelyKB.offset == Integer.MAX_VALUE;
                     if (flag(V.write(verbose()).bool(ignored).f64(player.likelyKB.offset))) { // This velocity was sent by the server.

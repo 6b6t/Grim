@@ -54,8 +54,11 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) return;
 
                     if (player.onGround || player.lastOnGround) {
-                        player.getSetbackTeleportUtil().executeNonSimulatingForceResync();
+                        if (!shouldCancelInvalidElytraStart()) {
+                            break;
+                        }
 
+                        player.getSetbackTeleportUtil().executeNonSimulatingForceResync();
                         if (player.platformPlayer != null) {
                             // Client ignores sneaking, use it to resync
                             player.platformPlayer.setSneaking(!player.platformPlayer.isSneaking());
@@ -77,6 +80,10 @@ public class PacketEntityAction extends PacketListenerAbstract {
                         player.isGliding = true;
                         player.pointThreeEstimator.updatePlayerGliding();
                     } else {
+                        if (!shouldCancelInvalidElytraStart()) {
+                            break;
+                        }
+
                         // A client is flying with a ghost elytra, resync
                         player.getSetbackTeleportUtil().executeNonSimulatingForceResync();
                         if (player.platformPlayer != null) {
@@ -96,5 +103,10 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     break;
             }
         }
+    }
+
+    private boolean shouldCancelInvalidElytraStart() {
+        return GrimAPI.INSTANCE.getConfigManager().getConfig()
+                .getBooleanElse("exploit.cancel-invalid-elytra-start", true);
     }
 }

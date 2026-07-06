@@ -67,7 +67,9 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
         if (!player.canSkipTicks()) {
             if (setback) {
                 setback = false;
-                setbackIfAboveSetbackVL();
+                if (shouldModifyPackets()) {
+                    setbackIfAboveSetbackVL();
+                }
             }
             return;
         }
@@ -76,7 +78,9 @@ public class PacketOrderE extends Check implements PostPredictionCheck {
             for (int currentFlags : flags) {
                 if (flag(write(currentFlags)) && setback) {
                     setback = false;
-                    setbackIfAboveSetbackVL();
+                    if (shouldModifyPackets()) {
+                        setbackIfAboveSetbackVL();
+                    }
                 }
             }
         }

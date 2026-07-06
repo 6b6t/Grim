@@ -1,5 +1,7 @@
 package ac.grim.grimac.checks;
 
+import ac.grim.grimac.manager.config.CheckCategory;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -30,4 +32,5 @@ public @interface CheckData {
 
     boolean experimental() default false;
 
+    CheckCategory category() default CheckCategory.AUTO;
 }

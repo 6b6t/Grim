@@ -8,6 +8,7 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.api.storage.verbose.VerboseBuf;
 import ac.grim.grimac.api.storage.verbose.VerboseRenderContext;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
+import ac.grim.grimac.manager.config.CheckCategory;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
@@ -73,11 +74,29 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public boolean shouldModifyPackets() {
-        return isEnabled
-                && !player.disableGrim
+        return shouldEnforce()
                 && !player.noModifyPacketPermission
                 && !noModifyPacketPermission
-                && !exemptPermission;
+                && GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().shouldModifyPackets(this);
+    }
+
+    public boolean shouldEnforce() {
+        return isEnabled
+                && !player.disableGrim
+                && !exemptPermission
+                && GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().modeFor(this).enforces();
+    }
+
+    public boolean isMonitorOnly() {
+        return GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().isMonitorOnly(this);
+    }
+
+    public boolean isSafetyCheck() {
+        return GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().isSafety(this);
+    }
+
+    public CheckCategory getCheckCategory() {
+        return GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().categoryFor(this);
     }
 
     public final void updatePermissions() {
@@ -120,7 +139,10 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     private boolean recordFlag(@NotNull Supplier<String> verbose) {
-        if (player.disableGrim || (experimental && !player.isExperimentalChecks()) || exemptPermission)
+        if (player.disableGrim
+                || (experimental && !player.isExperimentalChecks())
+                || exemptPermission
+                || !GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().shouldRecordFlags(this))
             return false; // Avoid calling event if disabled
 
         if (FLAG_CHANNEL.fire(player, this, verbose)) return false;
@@ -136,7 +158,10 @@ public class Check extends GrimProcessor implements AbstractCheck {
         Supplier<String> rendered = verbose.rendered();
         byte[] verboseData = verbose.data();
 
-        if (player.disableGrim || (experimental && !player.isExperimentalChecks()) || exemptPermission)
+        if (player.disableGrim
+                || (experimental && !player.isExperimentalChecks())
+                || exemptPermission
+                || !GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().shouldRecordFlags(this))
             return false; // Avoid calling event if disabled
 
         if (FLAG_CHANNEL.fire(player, this, rendered)) return false;
@@ -244,11 +269,19 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public boolean shouldSetback() {
-        return !noSetbackPermission && violations > setbackVL;
+        return !noSetbackPermission
+                && violations > setbackVL
+                && GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().shouldSetback(this);
+    }
+
+    public boolean shouldUseSetbacks() {
+        return !noSetbackPermission
+                && GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().shouldSetback(this);
     }
 
     public boolean executeViolationSetback() {
-        return !noSetbackPermission && player.getSetbackTeleportUtil().executeViolationSetback();
+        return shouldUseSetbacks()
+                && player.getSetbackTeleportUtil().executeViolationSetback();
     }
 
     public String formatOffset(double offset) {

@@ -55,6 +55,36 @@ disable-pong-cancelling: false
 # This forces the use of a "NoOp" (No Operation) handler unless a custom one is provided via API.
 disable-default-resync-handler: false
 
+# Compatibility enforcement profile.
+# strict keeps Grim's current enforcement behavior.
+# ncp-loose records gameplay checks but does not cancel packets or setback for those categories.
+# anarchy disables gameplay check flagging while keeping safety checks enforceable.
+compatibility:
+    profile: strict
+    # Safety covers crash/exploit/malformed packet checks that protect server stability.
+    safety:
+        mode: enforce
+        modify-packets: true
+        setbacks: true
+    # Gameplay covers movement, combat, block, packet-order, timer, velocity, elytra, vehicle, chat, and misc checks.
+    # These values are strict by default. The ncp-loose and anarchy profiles change their fallback behavior.
+    gameplay:
+        mode: enforce
+        modify-packets: true
+        setbacks: true
+    # Optional category overrides:
+    # categories:
+    #     combat:
+    #         mode: monitor
+    #         modify-packets: false
+    #         setbacks: false
+    # Optional per-check overrides use the check's config/check name, for example:
+    # checks:
+    #     Reach:
+    #         mode: monitor
+    #         modify-packets: false
+    #         setbacks: false
+
 # Should the duplicate movement packet be cancelled?
 # Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
 # This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
@@ -62,6 +92,11 @@ cancel-duplicate-packet: true
 
 # Whether or not to ignore the rotation in duplicate packets
 ignore-duplicate-packet-rotation: false
+
+SetbackBlocker:
+    # Whether Grim should block movement while a violation setback is waiting for client acknowledgement.
+    # Unloaded chunks and block-offset resync states are always blocked.
+    block-movement-during-setback: true
 
 Simulation:
     # How much should we multiply total advantage by when the player is legit
@@ -106,6 +141,31 @@ PositionPlace:
 RotationPlace:
     cancelvl: 5
 
+# Set cancelvl to -1 to alert/log block break violations without cancelling the digging packet.
+AirLiquidBreak:
+    cancelvl: 0
+
+FastBreak:
+    cancelvl: 0
+
+FarBreak:
+    cancelvl: 0
+
+InvalidBreak:
+    cancelvl: 0
+
+MultiBreak:
+    cancelvl: 0
+
+PositionBreakA:
+    cancelvl: 0
+
+RotationBreak:
+    cancelvl: 0
+
+WrongBreak:
+    cancelvl: 0
+
 # Prediction-based no slow check
 # Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button
 # Much more stable than other anticheats, but please report any falses... I have fixed a ton of netcode issues here.
@@ -140,6 +200,8 @@ Explosion:
 
 TimerA:
     setbackvl: 10
+    # Whether TimerA should cancel movement packets while a player is too far ahead of real time
+    cancel-packets: true
     # Milliseconds that the player can accumulate for later use when they fall behind
     # Could potentially allow 1.8 fast use/fast heal/fast bow bypasses if set too high, 120 ms seems like a good balance
     drift: 120
@@ -159,6 +221,8 @@ NegativeTimer:
 VehicleTimer:
     # Target 1.005 timer
     setbackvl: 10
+    # Whether VehicleTimer should cancel vehicle movement packets while a player is too far ahead of real time
+    cancel-packets: true
 
 PacketOrderI:
     # enable if players are getting flagged for using 1.7 animations mods
@@ -173,6 +237,15 @@ Reach:
     # Should we cancel hits that we know are impossible?
     # 3.00-3.03 hits may go through but still be flagged, due to packet order limitations
     block-impossible-hits: true
+    # Actual reach distance floor. -1 uses vanilla or attribute-derived reach.
+    max-distance: -1
+    # Extra distance added after vanilla or max-distance reach. This is not hitbox expansion.
+    extra-distance: 0
+    # How many entity attacks may be queued in one tick before applying max-attacks-per-tick-action.
+    # -1 disables this limit.
+    max-attacks-per-tick: 10
+    # cancel, alert, or ignore
+    max-attacks-per-tick-action: cancel
     # This will send an additional packet at the end of every tick to increase the likelihood of catching cheats
     # This injects into server's connection list to send a final packet just before the server flushes
     # Enabling this will increase bandwidth usage for all players
@@ -183,6 +256,8 @@ Reach:
     enable-post-packet: false
 
 exploit:
+    # Whether Grim should cancel and resync invalid elytra start packets outside the normal Elytra checks
+    cancel-invalid-elytra-start: true
     # You can gain high speeds when sprint jumping with an elytra, this prevents the exploit when set to false
     # Mojang screwed up netcode by making elytra start client sided and elytra end server sided
     # Elytras take 0.99 horizontal friction, so constantly adding 0.2 horizontal speeds results in very high speeds.

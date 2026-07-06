@@ -1,10 +1,9 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.api.storage.verbose.Verbose;
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.CancellableBlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -17,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", description = "Tried to break multiple different blocks in the same movement tick", experimental = true)
-public class MultiBreak extends Check implements BlockBreakCheck {
+public class MultiBreak extends CancellableBlockBreakCheck {
     private static final Verbose V =
             Verbose.of("face={face}, lastFace={face}, pos={mcpos}, lastPos={mcpos}");
 
@@ -43,7 +42,7 @@ public class MultiBreak extends Check implements BlockBreakCheck {
                 var buf = V.write(verbose()).uint(face).uint(previousFace)
                         .mcPos(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z)
                         .mcPos(lastPos.x, lastPos.y, lastPos.z);
-                if (flag(buf) && shouldModifyPackets()) {
+                if (flag(buf) && shouldCancelBlockBreak()) {
                     blockBreak.cancel();
                 }
             } else {

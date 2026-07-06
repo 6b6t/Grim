@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 // You may not copy the check unless you are licensed under GPL
 @CheckData(name = "Reach", stableKey = "grim.combat.reach", description = "Attacked an entity from too far away", setback = 10)
@@ -69,6 +70,10 @@ public class Reach extends Check implements PacketCheck {
     private final Int2ObjectMap<InteractionData> playerAttackQueue = new Int2ObjectOpenHashMap<>();
     private boolean cancelImpossibleHits;
     private double threshold;
+    private double maxDistance;
+    private double extraDistance;
+    private int maxAttacksPerTick;
+    private MaxAttacksPerTickAction maxAttacksPerTickAction;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
 
     public Reach(GrimPlayer player) {
@@ -96,8 +101,10 @@ public class Reach extends Check implements PacketCheck {
     private void onInteract(PacketReceiveEvent event, int entityId, InteractionHand hand) {
         // Don't let the player teleport to bypass reach
         if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
-            event.setCancelled(true);
-            player.onPacketCancel();
+            if (shouldModifyPackets()) {
+                event.setCancelled(true);
+                player.onPacketCancel();
+            }
             return;
         }
 
@@ -180,7 +187,7 @@ public class Reach extends Check implements PacketCheck {
             }
         }
 
-        boolean tooManyAttacks = playerAttackQueue.size() > 10;
+        boolean tooManyAttacks = hasTooManyAttacks();
         if (!tooManyAttacks) {
             playerAttackQueue.put(entityId, new InteractionData(
                     player.x, player.y, player.z,
@@ -190,7 +197,12 @@ public class Reach extends Check implements PacketCheck {
 
         boolean knownInvalid = attackRangeMovement == null && isKnownInvalid(entity, hasRange, maxReach, hitboxMargin);
 
-        if ((shouldModifyPackets() && cancelImpossibleHits && knownInvalid) || tooManyAttacks) {
+        if (tooManyAttacks) {
+            handleMaxAttacksPerTick(event);
+            return;
+        }
+
+        if (shouldModifyPackets() && cancelImpossibleHits && knownInvalid) {
             event.setCancelled(true);
             player.onPacketCancel();
         }
@@ -368,6 +380,7 @@ public class Reach extends Check implements PacketCheck {
             hitboxMargin += player.getMovementThreshold();
         }
 
+        maxReach = applyConfiguredReachDistance(maxReach);
         targetBox.expand(hitboxMargin);
 
         return maxReach;
@@ -377,10 +390,59 @@ public class Reach extends Check implements PacketCheck {
     public void onReload(ConfigManager config) {
         this.cancelImpossibleHits = config.getBooleanElse("Reach.block-impossible-hits", true);
         this.threshold = config.getDoubleElse("Reach.threshold", 0.0005);
+        this.maxDistance = config.getDoubleElse("Reach.max-distance", -1);
+        this.extraDistance = Math.max(0, config.getDoubleElse("Reach.extra-distance", 0));
+        this.maxAttacksPerTick = config.getIntElse("Reach.max-attacks-per-tick", 10);
+        this.maxAttacksPerTickAction = MaxAttacksPerTickAction.fromConfig(
+                config.getStringElse("Reach.max-attacks-per-tick-action", "cancel"));
+    }
+
+    private double applyConfiguredReachDistance(double maxReach) {
+        if (maxDistance > 0) {
+            maxReach = Math.max(maxReach, maxDistance);
+        }
+
+        return maxReach + extraDistance;
+    }
+
+    private boolean hasTooManyAttacks() {
+        return maxAttacksPerTick >= 0 && playerAttackQueue.size() > maxAttacksPerTick;
+    }
+
+    private void handleMaxAttacksPerTick(PacketReceiveEvent event) {
+        switch (maxAttacksPerTickAction) {
+            case CANCEL -> {
+                if (shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
+            }
+            case ALERT -> flag("attacks=" + playerAttackQueue.size() + ", limit=" + maxAttacksPerTick);
+            case IGNORE -> {
+            }
+        }
     }
 
     private enum ResultType {
         REACH, HITBOX, NONE
+    }
+
+    private enum MaxAttacksPerTickAction {
+        CANCEL,
+        ALERT,
+        IGNORE;
+
+        private static MaxAttacksPerTickAction fromConfig(String value) {
+            if (value == null) {
+                return CANCEL;
+            }
+
+            return switch (value.toLowerCase(Locale.ROOT)) {
+                case "alert" -> ALERT;
+                case "ignore" -> IGNORE;
+                default -> CANCEL;
+            };
+        }
     }
 
     private record CheckResult(ResultType type, double minDistance, double extraMovement, boolean hasExtraMovement) {

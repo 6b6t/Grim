@@ -44,10 +44,13 @@ public class BaseConfigManager {
     private boolean disablePongCancelling;
     @Getter
     private int updatePermissionTicks = -1;
+    @Getter
+    private EnforcementPolicy enforcementPolicy = EnforcementPolicy.strict();
 
     // initialize the config
     public void load(ConfigManager config) {
         this.config = config;
+        enforcementPolicy = EnforcementPolicy.load(config);
 
         int configuredMaxTransactionTime = config.getIntElse("max-transaction-time", 60);
         if (configuredMaxTransactionTime > 180 || configuredMaxTransactionTime < 1) {

@@ -1,9 +1,8 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.api.storage.verbose.Verbose;
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.CancellableBlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -13,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
 @CheckData(name = "FarBreak", stableKey = "grim.breaking.far_break", description = "Breaking blocks too far away", experimental = true)
-public class FarBreak extends Check implements BlockBreakCheck {
+public class FarBreak extends CancellableBlockBreakCheck {
     private static final Verbose V = Verbose.of("distance={f64:%.2f}");
 
     public FarBreak(GrimPlayer player) {
@@ -42,7 +41,7 @@ public class FarBreak extends Check implements BlockBreakCheck {
 
         if (min > maxReach * maxReach) {
             double distance = Math.sqrt(min);
-            if (flag(V.write(verbose()).f64(distance)) && shouldModifyPackets()) {
+            if (flag(V.write(verbose()).f64(distance)) && shouldCancelBlockBreak()) {
                 blockBreak.cancel();
             }
         }

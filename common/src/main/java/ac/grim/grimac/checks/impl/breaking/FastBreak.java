@@ -1,10 +1,9 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.api.storage.verbose.Verbose;
-import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.CancellableBlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -27,7 +26,7 @@ import java.util.Set;
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
 @CheckData(name = "FastBreak", stableKey = "grim.breaking.fast_break", description = "Breaking blocks too quickly")
-public class FastBreak extends Check implements BlockBreakCheck {
+public class FastBreak extends CancellableBlockBreakCheck {
     private static final Verbose V =
             Verbose.of("[delay={ulong}ms|diff={f64:%.1f}ms, balance={f64:%.1f}ms], type={block}");
 
@@ -86,7 +85,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
 
             if (blockDelayBalance > 1000) { // If more than a second of advantage
                 int type = VerboseCodecs.block(blockBreak.block.getType(), player.getClientVersion());
-                if (flag(V.write(verbose()).bool(true).ulong((long) breakDelay).f64(0).f64(0).sint(type)) && shouldModifyPackets()) {
+                if (flag(V.write(verbose()).bool(true).ulong((long) breakDelay).f64(0).f64(0).sint(type)) && shouldCancelBlockBreak()) {
                     blockBreak.cancel();
                 }
             }
@@ -109,7 +108,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
 
             if (blockBreakBalance > 1000) { // If more than a second of advantage
                 int type = VerboseCodecs.block(blockBreak.block.getType(), player.getClientVersion());
-                if (flag(V.write(verbose()).bool(false).ulong(0).f64(diff).f64(blockBreakBalance).sint(type)) && shouldModifyPackets()) {
+                if (flag(V.write(verbose()).bool(false).ulong(0).f64(diff).f64(blockBreakBalance).sint(type)) && shouldCancelBlockBreak()) {
                     blockBreak.cancel();
                 }
             }

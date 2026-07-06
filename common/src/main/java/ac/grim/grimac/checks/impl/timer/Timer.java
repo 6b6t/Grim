@@ -20,6 +20,7 @@ public class Timer extends Check implements PacketCheck {
     // How long should the player be able to fall back behind their ping? (nanos)
     // Default: 120 milliseconds
     protected long clockDrift;
+    private boolean cancelPackets;
 
     protected boolean hasGottenMovementAfterTransaction = false;
 
@@ -74,7 +75,7 @@ public class Timer extends Check implements PacketCheck {
         if (timerBalanceRealTime > System.nanoTime()) {
             if (flag()) {
                 // Cancel the packet
-                if (shouldModifyPackets()) {
+                if (cancelPackets && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
@@ -108,5 +109,6 @@ public class Timer extends Check implements PacketCheck {
     @Override
     public void onReload(ConfigManager config) {
         clockDrift = (long) (config.getDoubleElse(getConfigName() + ".drift", 120.0) * 1e6);
+        cancelPackets = config.getBooleanElse(getConfigName() + ".cancel-packets", true);
     }
 }

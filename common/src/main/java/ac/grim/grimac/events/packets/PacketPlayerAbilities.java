@@ -1,5 +1,6 @@
 package ac.grim.grimac.events.packets;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -41,7 +42,9 @@ public class PacketPlayerAbilities extends Check implements PacketCheck {
                 if (maxFlyingPing != -1) {
                     player.runNettyTaskInMs(() -> {
                         if (player.lastTransactionReceived.get() < noFlying) {
-                            player.getSetbackTeleportUtil().executeViolationSetback();
+                            if (GrimAPI.INSTANCE.getConfigManager().getEnforcementPolicy().isGameplaySetbacks()) {
+                                player.getSetbackTeleportUtil().executeViolationSetback();
+                            }
                         }
                     }, maxFlyingPing);
                 }

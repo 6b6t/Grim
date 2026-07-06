@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.movement;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -9,6 +10,8 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 public class SetbackBlocker extends Check implements PacketCheck {
+    private boolean blockMovementDuringSetback = true;
+
     public SetbackBlocker(GrimPlayer playerData) {
         super(playerData);
     }
@@ -20,7 +23,7 @@ public class SetbackBlocker extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY
                 || event.getPacketType() == PacketType.Play.Client.ATTACK
                 || event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
-            if (player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay > 0) {
+            if (blockMovementDuringSetback && player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay > 0) {
                 event.setCancelled(true); // Player is in the vehicle
             }
         }
@@ -30,7 +33,7 @@ public class SetbackBlocker extends Check implements PacketCheck {
 
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             // The player must obey setbacks
-            if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
+            if (shouldBlockMovementForSetback()) {
                 event.setCancelled(true);
             }
 
@@ -51,7 +54,7 @@ public class SetbackBlocker extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
-            if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
+            if (shouldBlockMovementForSetback()) {
                 event.setCancelled(true);
             }
 
@@ -70,5 +73,16 @@ public class SetbackBlocker extends Check implements PacketCheck {
                 event.setCancelled(true);
             }
         }
+    }
+
+    private boolean shouldBlockMovementForSetback() {
+        return player.getSetbackTeleportUtil().insideUnloadedChunk()
+                || player.getSetbackTeleportUtil().blockOffsets
+                || blockMovementDuringSetback && player.getSetbackTeleportUtil().shouldBlockMovement();
+    }
+
+    @Override
+    public void onReload(ConfigManager config) {
+        blockMovementDuringSetback = config.getBooleanElse("SetbackBlocker.block-movement-during-setback", true);
     }
 }

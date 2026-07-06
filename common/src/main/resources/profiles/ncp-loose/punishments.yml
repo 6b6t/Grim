@@ -1,0 +1,52 @@
+# Optional NCP-style loose punishment profile.
+# Keep safety checks enforcing and leave gameplay checks to compatibility.profile monitor mode.
+
+Punishments:
+  Safety:
+    remove-violations-after: 300
+    checks:
+      - "Crash"
+      - "Exploit"
+      - "BadPacketsD"
+      - "BadPacketsI"
+      - "BadPacketsK"
+      - "BadPacketsL"
+      - "BadPacketsU"
+      - "BadPacketsO"
+      - "BadPacketsP"
+      - "BadPacketsQ"
+      - "BadPacketsS"
+      - "BadPacketsY"
+      - "BadPacketsN"
+      - "BadPacketsW"
+      - "InvalidPlace"
+      - "FabricatedPlace"
+      - "InvalidBreak"
+    commands:
+      - "20:20 [alert]"
+      - "1:1 [log]"
+
+  GameplayMonitor:
+    remove-violations-after: 300
+    checks:
+      - "Simulation"
+      - "GroundSpoof"
+      - "Timer"
+      - "TimerLimit"
+      - "NoFall"
+      - "Knockback"
+      - "Explosion"
+      - "Reach"
+      - "Hitboxes"
+      - "Aim"
+      - "PacketOrder"
+      - "MultiActions"
+      - "MultiInteract"
+      - "Place"
+      - "Break"
+      - "NoSlow"
+      - "Sprint"
+      - "Elytra"
+      - "Vehicle"
+    commands:
+      - "100:100 [alert]"

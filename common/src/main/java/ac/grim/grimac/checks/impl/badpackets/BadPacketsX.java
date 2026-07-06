@@ -23,7 +23,9 @@ public class BadPacketsX extends Check implements PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (!player.canSkipTicks()) {
             if (flags > 0) {
-                setbackIfAboveSetbackVL();
+                if (shouldModifyPackets()) {
+                    setbackIfAboveSetbackVL();
+                }
             }
 
             flags = 0;
