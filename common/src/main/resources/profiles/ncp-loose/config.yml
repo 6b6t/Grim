@@ -9,18 +9,52 @@ compatibility:
         setbacks: false
     safety:
         mode: enforce
+    checks:
+        # NCP allowed many combat/build/client modules, but movement hacks were still bounded by cancel/setback.
+        Simulation:
+            mode: enforce
+            modify-packets: true
+            setbacks: true
+        GroundSpoof:
+            mode: monitor
+            modify-packets: false
+            setbacks: false
+        NoFall:
+            mode: monitor
+            modify-packets: false
+            setbacks: false
+        TimerA:
+            mode: enforce
+            modify-packets: true
+            setbacks: true
+        TimerLimit:
+            mode: enforce
+            modify-packets: true
+            setbacks: true
+        TickTimer:
+            mode: monitor
+            modify-packets: false
+            setbacks: false
+        VehicleTimer:
+            mode: enforce
+            modify-packets: true
+            setbacks: true
+        ElytraSpeed:
+            mode: enforce
+            modify-packets: true
+            setbacks: true
 
 Simulation:
-    threshold: 0.05
-    immediate-setback-threshold: -1
-    max-advantage: -1
-    setback-violation-threshold: 1000000
+    threshold: 0.12
+    immediate-setback-threshold: 0.45
+    max-advantage: 3
+    setback-violation-threshold: 6
 
 Phase:
     setbackvl: -1
 
 SetbackBlocker:
-    block-movement-during-setback: false
+    block-movement-during-setback: true
 
 NoSlow:
     setbackvl: -1
@@ -34,16 +68,23 @@ Explosion:
     setbackvl: -1
 
 TimerA:
-    setbackvl: -1
+    setbackvl: 10
     drift: 500
-    cancel-packets: false
+    allowed-timer-multiplier: 1.12
+    cancel-packets: true
 
 TimerLimit:
-    ping-abuse-limit-threshold: -1
+    setbackvl: 10
+    allowed-timer-multiplier: 1.12
+    ping-abuse-limit-threshold: 1000
 
 VehicleTimer:
-    setbackvl: -1
-    cancel-packets: false
+    setbackvl: 10
+    cancel-packets: true
+
+ElytraSpeed:
+    max-horizontal-speed: 3.25
+    max-ascending-speed: 2.5
 
 Reach:
     block-impossible-hits: false
@@ -66,6 +107,8 @@ RotationPlace:
 
 FabricatedPlace:
     cancelvl: 5
+
+exempt-elytra: true
 
 exploit:
     cancel-invalid-elytra-start: false

@@ -205,6 +205,9 @@ TimerA:
     # Milliseconds that the player can accumulate for later use when they fall behind
     # Could potentially allow 1.8 fast use/fast heal/fast bow bypasses if set too high, 120 ms seems like a good balance
     drift: 120
+    # Sustained movement packet rate to allow before timer balance grows
+    # 1.0 is vanilla. 1.1 allows roughly 10% timer speed before correction.
+    allowed-timer-multiplier: 1.0
 
 # This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
 TimerLimit:
@@ -212,6 +215,8 @@ TimerLimit:
     # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
     # -1 to disable
     ping-abuse-limit-threshold: 1000
+    # Sustained movement packet rate to allow before timer balance grows
+    allowed-timer-multiplier: 1.0
 
 NegativeTimer:
     # Number of milliseconds lost while moving before we should start flagging
@@ -223,6 +228,13 @@ VehicleTimer:
     setbackvl: 10
     # Whether VehicleTimer should cancel vehicle movement packets while a player is too far ahead of real time
     cancel-packets: true
+
+ElytraSpeed:
+    # Maximum horizontal movement per tick while gliding before Grim setbacks.
+    # This is mainly useful with exempt-elytra compatibility profiles.
+    max-horizontal-speed: 3.25
+    # Maximum upward movement per tick while gliding before Grim setbacks.
+    max-ascending-speed: 2.5
 
 PacketOrderI:
     # enable if players are getting flagged for using 1.7 animations mods
@@ -293,6 +305,9 @@ max-ping-out-of-flying: 1000
 # Maximum ping when a firework boost is removed from the player.
 # This prevents high latency players from being able to use 1 firework boost with an elytra forever.
 max-ping-firework-boost: 1000
+
+# Exempt gliding players from full movement prediction. ElytraSpeed can still cap movement when enabled.
+exempt-elytra: false
 
 # Grim always refreshes cached permissions when a player joins and when Grim reloads,
 # whether or not LuckPerms is installed.
