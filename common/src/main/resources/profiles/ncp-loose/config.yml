@@ -45,9 +45,9 @@ compatibility:
             setbacks: true
 
 Simulation:
-    threshold: 0.14
-    immediate-setback-threshold: 0.5
-    max-advantage: 3.5
+    threshold: 0.34
+    immediate-setback-threshold: 0.85
+    max-advantage: 8
     setback-violation-threshold: 6
 
 Phase:
@@ -70,12 +70,12 @@ Explosion:
 TimerA:
     setbackvl: 10
     drift: 500
-    allowed-timer-multiplier: 1.16
+    allowed-timer-multiplier: 1.18
     cancel-packets: true
 
 TimerLimit:
     setbackvl: 10
-    allowed-timer-multiplier: 1.16
+    allowed-timer-multiplier: 1.18
     ping-abuse-limit-threshold: 1000
 
 VehicleTimer:
