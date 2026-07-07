@@ -15,6 +15,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 @CheckData(name = "Simulation", stableKey = "grim.prediction.simulation", description = "Moved differently than predicted movement simulation", decay = 0.02)
 public class OffsetHandler extends Check implements PostPredictionCheck {
     private static final Verbose V = Verbose.of("{offset}");
+    private static final double NORMAL_THRESHOLD = 0.001;
+    private static final double NORMAL_IMMEDIATE_SETBACK_THRESHOLD = 0.1;
+    private static final double NORMAL_MAX_ADVANTAGE = 1;
+    private static final double NORMAL_SETBACK_VIOLATION_THRESHOLD = 1;
 
     private static final AtomicInteger flags = new AtomicInteger(0);
     // Config
@@ -24,6 +28,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     private double maxAdvantage;
     private double maxCeiling;
     private double setbackViolationThreshold;
+    private boolean useNormalFluidThresholds;
     // Current advantage gained
     private double advantageGained = 0;
     private static final CompletePredictionEvent.Channel COMPLETE_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(CompletePredictionEvent.class);
@@ -39,7 +44,13 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
         if (COMPLETE_CHANNEL.fire(player, this, offset)) return;
 
-        if ((offset >= threshold || offset >= immediateSetbackThreshold)) {
+        boolean normalFluidSimulation = isNormalFluidSimulation();
+        double activeThreshold = normalFluidSimulation ? NORMAL_THRESHOLD : threshold;
+        double activeImmediateSetbackThreshold = normalFluidSimulation ? NORMAL_IMMEDIATE_SETBACK_THRESHOLD : immediateSetbackThreshold;
+        double activeMaxAdvantage = normalFluidSimulation ? NORMAL_MAX_ADVANTAGE : maxAdvantage;
+        double activeSetbackViolationThreshold = normalFluidSimulation ? NORMAL_SETBACK_VIOLATION_THRESHOLD : setbackViolationThreshold;
+
+        if ((offset >= activeThreshold || offset >= activeImmediateSetbackThreshold)) {
             advantageGained += offset;
             giveOffsetLenienceNextTick(offset);
 
@@ -50,9 +61,9 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                     flags.incrementAndGet();
                     predictionComplete.setIdentifier(flagId);
 
-                    if ((advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
+                    if ((advantageGained >= activeMaxAdvantage || offset >= activeImmediateSetbackThreshold)
                             && shouldUseSetbacks()
-                            && violations >= setbackViolationThreshold) {
+                            && violations >= activeSetbackViolationThreshold) {
                         executeViolationSetback();
                     }
                 }
@@ -98,6 +109,16 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         player.uncertaintyHandler.lastVerticalOffset = 0;
     }
 
+    private boolean isNormalFluidSimulation() {
+        return useNormalFluidThresholds
+                && !player.inVehicle()
+                && !player.isFlying
+                && !player.isGliding
+                && (player.wasTouchingWater
+                || player.wasTouchingLava
+                || player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1)));
+    }
+
     @Override
     public void onReload(ConfigManager config) {
         setbackDecayMultiplier = config.getDoubleElse("Simulation.setback-decay-multiplier", 0.999);
@@ -106,11 +127,12 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
         setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
+        useNormalFluidThresholds = config.getBooleanElse("Simulation.use-normal-fluid-thresholds", true);
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
     }
 
     public boolean doesOffsetFlag(double offset) {
-        return offset >= threshold;
+        return offset >= (isNormalFluidSimulation() ? NORMAL_THRESHOLD : threshold);
     }
 }

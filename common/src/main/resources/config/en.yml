@@ -120,6 +120,9 @@ Simulation:
     # Violation level threshold for setback
     # 1 for old behavior
     setback-violation-threshold: 1
+    # Keep Grim's normal strict simulation thresholds while the player is in or near liquid,
+    # even if a compatibility profile loosens general movement simulation.
+    use-normal-fluid-thresholds: true
 
 MovementSpeed:
     # Hard horizontal packet cap in blocks per second.
@@ -139,16 +142,6 @@ Flight:
     hover-vertical-speed: 0.04
     # Number of hover ticks after min-air-ticks before flagging.
     max-hover-ticks: 4
-
-Jesus:
-    # How close to the fluid surface the player's feet must stay before this check can flag.
-    surface-tolerance: 0.08
-    # Maximum vertical movement while moving on top of fluid before treating it as surface walking.
-    max-vertical-speed: 0.05
-    # Minimum horizontal movement required before treating fluid-surface contact as Jesus.
-    min-horizontal-distance: 0.03
-    # Number of consecutive fluid-surface movement ticks before setback.
-    min-surface-ticks: 4
 
 # Checks to see if a player entered a block during a movement
 Phase:
