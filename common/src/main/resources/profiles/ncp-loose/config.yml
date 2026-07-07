@@ -15,6 +15,10 @@ compatibility:
             mode: enforce
             modify-packets: true
             setbacks: true
+        Phase:
+            mode: enforce
+            modify-packets: true
+            setbacks: true
         GroundSpoof:
             mode: monitor
             modify-packets: false
@@ -62,7 +66,7 @@ MovementSpeed:
     max-horizontal-blocks-per-second: 5.6
 
 Phase:
-    setbackvl: -1
+    setbackvl: 1
 
 SetbackBlocker:
     block-movement-during-setback: true
