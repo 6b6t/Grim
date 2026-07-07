@@ -131,10 +131,24 @@ Flight:
     min-air-ticks: 6
     # How much vertical movement advantage over Grim's predicted velocity is allowed before flagging.
     vertical-advantage-threshold: 0.08
+    # Cumulative vertical advantage allowed while airborne. This prevents packet-splitting tiny vertical gains.
+    max-cumulative-advantage: 0.24
+    # Per-packet cumulative advantage decay when the player stops gaining vertical advantage.
+    advantage-decay: 0.03
     # Absolute vertical speed treated as hovering if Grim predicted falling.
     hover-vertical-speed: 0.04
     # Number of hover ticks after min-air-ticks before flagging.
     max-hover-ticks: 4
+
+Jesus:
+    # How close to the fluid surface the player's feet must stay before this check can flag.
+    surface-tolerance: 0.08
+    # Maximum vertical movement while moving on top of fluid before treating it as surface walking.
+    max-vertical-speed: 0.05
+    # Minimum horizontal movement required before treating fluid-surface contact as Jesus.
+    min-horizontal-distance: 0.03
+    # Number of consecutive fluid-surface movement ticks before setback.
+    min-surface-ticks: 4
 
 # Checks to see if a player entered a block during a movement
 Phase:

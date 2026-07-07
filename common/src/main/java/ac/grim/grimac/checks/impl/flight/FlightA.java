@@ -11,10 +11,13 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "Flight", stableKey = "grim.movement.flight", description = "Maintained unsupported vertical movement", setback = 0, decay = 0.05)
 public class FlightA extends Check implements PostPredictionCheck {
-    private static final Verbose V = Verbose.of("vertical={f64}, predicted={f64}, advantage={f64}, air={uint}");
+    private static final Verbose V = Verbose.of("vertical={f64}, predicted={f64}, advantage={f64}, buffer={f64}, air={uint}");
 
     private double verticalAdvantageThreshold;
+    private double maxCumulativeAdvantage;
+    private double advantageDecay;
     private double hoverVerticalSpeed;
+    private double advantageBuffer;
     private int minAirTicks;
     private int maxHoverTicks;
     private int airTicks;
@@ -43,12 +46,18 @@ public class FlightA extends Check implements PostPredictionCheck {
         double vertical = player.actualMovement.getY();
         double predicted = player.predictedVelocity.vector.getY();
         double advantage = vertical - predicted;
+        double positiveAdvantage = Math.max(0, advantage);
         boolean hovering = Math.abs(vertical) <= hoverVerticalSpeed && predicted < -hoverVerticalSpeed;
 
+        if (positiveAdvantage > 0) {
+            advantageBuffer = Math.min(maxCumulativeAdvantage * 2, advantageBuffer + positiveAdvantage);
+        } else {
+            advantageBuffer = Math.max(0, advantageBuffer - advantageDecay);
+        }
         hoverTicks = hovering ? hoverTicks + 1 : 0;
 
-        if (airTicks >= minAirTicks && (advantage > verticalAdvantageThreshold || hoverTicks >= maxHoverTicks)) {
-            if (flag(V.write(verbose()).f64(vertical).f64(predicted).f64(advantage).uint(airTicks))) {
+        if (airTicks >= minAirTicks && (advantage > verticalAdvantageThreshold || advantageBuffer > maxCumulativeAdvantage || hoverTicks >= maxHoverTicks)) {
+            if (flag(V.write(verbose()).f64(vertical).f64(predicted).f64(advantage).f64(advantageBuffer).uint(airTicks))) {
                 executeViolationSetback();
             }
             return;
@@ -84,11 +93,14 @@ public class FlightA extends Check implements PostPredictionCheck {
     private void reset() {
         airTicks = 0;
         hoverTicks = 0;
+        advantageBuffer = 0;
     }
 
     @Override
     public void onReload(ConfigManager config) {
         verticalAdvantageThreshold = config.getDoubleElse(getConfigName() + ".vertical-advantage-threshold", 0.08);
+        maxCumulativeAdvantage = config.getDoubleElse(getConfigName() + ".max-cumulative-advantage", 0.24);
+        advantageDecay = config.getDoubleElse(getConfigName() + ".advantage-decay", 0.03);
         hoverVerticalSpeed = config.getDoubleElse(getConfigName() + ".hover-vertical-speed", 0.04);
         minAirTicks = config.getIntElse(getConfigName() + ".min-air-ticks", 6);
         maxHoverTicks = config.getIntElse(getConfigName() + ".max-hover-ticks", 4);

@@ -34,6 +34,10 @@ compatibility:
             mode: enforce
             modify-packets: true
             setbacks: true
+        Jesus:
+            mode: enforce
+            modify-packets: true
+            setbacks: true
         NoSlow:
             mode: off
             modify-packets: false
@@ -75,8 +79,16 @@ MovementSpeed:
 Flight:
     min-air-ticks: 6
     vertical-advantage-threshold: 0.08
+    max-cumulative-advantage: 0.24
+    advantage-decay: 0.03
     hover-vertical-speed: 0.04
     max-hover-ticks: 4
+
+Jesus:
+    surface-tolerance: 0.08
+    max-vertical-speed: 0.05
+    min-horizontal-distance: 0.03
+    min-surface-ticks: 4
 
 Phase:
     setbackvl: 0
