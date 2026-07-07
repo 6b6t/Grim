@@ -1,5 +1,5 @@
 # Optional NCP-style loose punishment profile.
-# Keep safety checks enforcing and leave gameplay checks to compatibility.profile monitor mode.
+# Keep safety checks enforcing and let compatibility.profile decide which gameplay checks enforce.
 
 Punishments:
   Safety:
@@ -30,6 +30,8 @@ Punishments:
     remove-violations-after: 300
     checks:
       - "Simulation"
+      - "MovementSpeed"
+      - "Phase"
       - "GroundSpoof"
       - "Timer"
       - "TimerLimit"

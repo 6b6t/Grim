@@ -1,6 +1,9 @@
 # Optional NCP-style loose profile overlay.
 # Copy these values into config.yml, or use them as a reference for compatibility-heavy servers.
 
+config-flavor: V2
+config-version: 11
+
 compatibility:
     profile: ncp-loose
     gameplay:
@@ -99,7 +102,7 @@ VehicleTimer:
     cancel-packets: true
 
 ElytraSpeed:
-    max-horizontal-speed: 3.25
+    max-horizontal-speed: 3.0
     max-ascending-speed: 2.5
 
 Reach:
