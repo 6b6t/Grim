@@ -66,7 +66,8 @@ MovementSpeed:
     max-horizontal-blocks-per-second: 5.6
 
 Phase:
-    setbackvl: 1
+    setbackvl: 0
+    flag-persistent-collisions: true
 
 SetbackBlocker:
     block-movement-during-setback: true

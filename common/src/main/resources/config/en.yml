@@ -129,6 +129,8 @@ MovementSpeed:
 # Checks to see if a player entered a block during a movement
 Phase:
     setbackvl: 1 # Glitching into blocks can allow wall climbing, plus this check is relatively stable
+    # Also flag players who remain intersecting solid collision boxes after they have already entered them.
+    flag-persistent-collisions: false
     decay: 0.005
 
 AirLiquidPlace:
