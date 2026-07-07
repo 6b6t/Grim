@@ -51,7 +51,7 @@ public class MovementSpeed extends Check implements PacketCheck {
             return;
         }
 
-        if (flag(V.write(verbose()).f64(horizontalDistance).f64(maxHorizontalDistance)) && shouldModifyPackets()) {
+        if (shouldModifyPackets()) {
             double scale = maxHorizontalDistance / horizontalDistance;
             packet.setLocation(new Location(
                     player.x + deltaX * scale,
@@ -62,6 +62,7 @@ public class MovementSpeed extends Check implements PacketCheck {
             ));
             event.markForReEncode(true);
         }
+        flag(V.write(verbose()).f64(horizontalDistance).f64(maxHorizontalDistance));
     }
 
     @Override

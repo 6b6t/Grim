@@ -45,11 +45,12 @@ public class ElytraSpeed extends Check implements PacketCheck {
             return;
         }
 
-        if (flag(V.write(verbose()).f64(horizontalSpeed).f64(ascendingSpeed)) && shouldModifyPackets()) {
+        if (shouldModifyPackets()) {
             packet.setLocation(clampLocation(location, deltaX, deltaY, deltaZ, horizontalSpeed));
             event.markForReEncode(true);
             player.fallDistance = 0;
         }
+        flag(V.write(verbose()).f64(horizontalSpeed).f64(ascendingSpeed));
     }
 
     private Location clampLocation(Location location, double deltaX, double deltaY, double deltaZ, double horizontalSpeed) {

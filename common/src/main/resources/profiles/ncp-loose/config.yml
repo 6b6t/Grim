@@ -59,7 +59,7 @@ Simulation:
     setback-violation-threshold: 6
 
 MovementSpeed:
-    max-horizontal-blocks-per-second: 8.0
+    max-horizontal-blocks-per-second: 5.6
 
 Phase:
     setbackvl: -1
