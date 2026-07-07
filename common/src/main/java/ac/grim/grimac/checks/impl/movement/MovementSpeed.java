@@ -42,11 +42,6 @@ public class MovementSpeed extends Check implements PacketCheck {
             return;
         }
 
-        if (maxHorizontalBlocksPerSecond <= 0) {
-            reward();
-            return;
-        }
-
         WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(event);
         if (!packet.hasPositionChanged()) {
             reward();
