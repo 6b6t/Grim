@@ -22,6 +22,7 @@ import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.Post;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
+import ac.grim.grimac.checks.impl.movement.MovementSpeed;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.checks.impl.movement.PredictionRunner;
 import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
@@ -213,7 +214,6 @@ public class CheckManager {
                 .put(ElytraG.class, new ElytraG(player))
                 .put(ElytraH.class, new ElytraH(player))
                 .put(ElytraI.class, new ElytraI(player))
-                .put(ElytraSpeed.class, new ElytraSpeed(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .put(CompensatedFireworks.class, player.fireworks)
                 .put(SneakingEstimator.class, new SneakingEstimator(player))
@@ -245,6 +245,8 @@ public class CheckManager {
                 .put(CrashA.class, new CrashA(player))
                 .put(CrashC.class, new CrashC(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
+                .put(MovementSpeed.class, new MovementSpeed(player))
+                .put(ElytraSpeed.class, new ElytraSpeed(player))
                 .build();
 
         blockBreakChecks = new ImmutableClassToInstanceMap.Builder<BlockBreakCheck>()

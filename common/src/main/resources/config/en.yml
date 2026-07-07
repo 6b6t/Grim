@@ -121,6 +121,11 @@ Simulation:
     # 1 for old behavior
     setback-violation-threshold: 1
 
+MovementSpeed:
+    # Hard horizontal packet cap in blocks per second.
+    # -1 disables the cap. Loose compatibility profiles can enable this to allow speed modules up to a ceiling.
+    max-horizontal-blocks-per-second: -1
+
 # Checks to see if a player entered a block during a movement
 Phase:
     setbackvl: 1 # Glitching into blocks can allow wall climbing, plus this check is relatively stable

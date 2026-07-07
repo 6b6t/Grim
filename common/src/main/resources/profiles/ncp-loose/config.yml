@@ -19,6 +19,14 @@ compatibility:
             mode: monitor
             modify-packets: false
             setbacks: false
+        MovementSpeed:
+            mode: enforce
+            modify-packets: true
+            setbacks: false
+        NoSlow:
+            mode: off
+            modify-packets: false
+            setbacks: false
         NoFall:
             mode: monitor
             modify-packets: false
@@ -49,6 +57,9 @@ Simulation:
     immediate-setback-threshold: 0.85
     max-advantage: 8
     setback-violation-threshold: 6
+
+MovementSpeed:
+    max-horizontal-blocks-per-second: 8.0
 
 Phase:
     setbackvl: -1
