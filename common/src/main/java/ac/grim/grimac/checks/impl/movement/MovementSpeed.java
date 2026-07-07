@@ -7,7 +7,9 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.Location;
@@ -21,6 +23,7 @@ public class MovementSpeed extends Check implements PacketCheck {
     private static final double EPSILON = 1.0E-3;
 
     private double maxHorizontalBlocksPerSecond;
+    private double maxAirborneHorizontalBlocksPerSecond;
     private double horizontalBudget;
     private long lastPositionNanos;
 
@@ -50,9 +53,10 @@ public class MovementSpeed extends Check implements PacketCheck {
 
         Location location = packet.getLocation();
         double deltaX = location.getX() - player.x;
+        double deltaY = location.getY() - player.y;
         double deltaZ = location.getZ() - player.z;
         double horizontalDistance = Math.hypot(deltaX, deltaZ);
-        double maxHorizontalDistance = availableHorizontalDistance();
+        double maxHorizontalDistance = availableHorizontalDistance(horizontalLimitFor(deltaX, deltaY, deltaZ));
 
         if (horizontalDistance <= maxHorizontalDistance + EPSILON) {
             horizontalBudget = Math.max(0, horizontalBudget - horizontalDistance);
@@ -67,8 +71,30 @@ public class MovementSpeed extends Check implements PacketCheck {
         flag(V.write(verbose()).f64(horizontalDistance).f64(maxHorizontalDistance));
     }
 
-    private double availableHorizontalDistance() {
-        double maxPerTick = maxHorizontalBlocksPerSecond / 20.0;
+    private double horizontalLimitFor(double deltaX, double deltaY, double deltaZ) {
+        if (maxAirborneHorizontalBlocksPerSecond <= 0 || targetHasSupport(deltaX, deltaY, deltaZ)) {
+            return maxHorizontalBlocksPerSecond;
+        }
+
+        return maxAirborneHorizontalBlocksPerSecond;
+    }
+
+    private boolean targetHasSupport(double deltaX, double deltaY, double deltaZ) {
+        SimpleCollisionBox targetBox = player.boundingBox.copy().offset(deltaX, deltaY, deltaZ);
+        SimpleCollisionBox supportBox = new SimpleCollisionBox(
+                targetBox.minX,
+                targetBox.minY - 1.0E-6,
+                targetBox.minZ,
+                targetBox.maxX,
+                targetBox.minY,
+                targetBox.maxZ
+        );
+
+        return !Collisions.isEmpty(player, supportBox);
+    }
+
+    private double availableHorizontalDistance(double limitBlocksPerSecond) {
+        double maxPerTick = limitBlocksPerSecond / 20.0;
         long now = System.nanoTime();
         if (lastPositionNanos == 0) {
             lastPositionNanos = now;
@@ -78,7 +104,7 @@ public class MovementSpeed extends Check implements PacketCheck {
 
         long elapsed = Math.max(0, Math.min(MAX_INTERVAL_NANOS, now - lastPositionNanos));
         lastPositionNanos = now;
-        horizontalBudget = Math.min(maxPerTick, horizontalBudget + maxHorizontalBlocksPerSecond * (elapsed / 1_000_000_000.0));
+        horizontalBudget = Math.min(maxPerTick, horizontalBudget + limitBlocksPerSecond * (elapsed / 1_000_000_000.0));
         return horizontalBudget;
     }
 
@@ -104,6 +130,7 @@ public class MovementSpeed extends Check implements PacketCheck {
     @Override
     public void onReload(ConfigManager config) {
         maxHorizontalBlocksPerSecond = config.getDoubleElse(getConfigName() + ".max-horizontal-blocks-per-second", -1);
+        maxAirborneHorizontalBlocksPerSecond = config.getDoubleElse(getConfigName() + ".max-airborne-horizontal-blocks-per-second", -1);
         resetBudget();
     }
 }

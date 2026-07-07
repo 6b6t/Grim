@@ -70,11 +70,12 @@ Simulation:
     setback-violation-threshold: 6
     use-normal-fluid-thresholds: true
     use-normal-airborne-thresholds: true
-    normal-airborne-min-ticks: 20
+    normal-airborne-min-ticks: 1
     normal-airborne-vertical-speed: 0.42
 
 MovementSpeed:
     max-horizontal-blocks-per-second: 30
+    max-airborne-horizontal-blocks-per-second: 8
 
 Phase:
     setbackvl: 0

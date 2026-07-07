@@ -126,7 +126,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     }
 
     private void updateAirTicks() {
-        if (player.onGround || player.lastOnGround || isAirborneExempt()) {
+        if (hasReliableGroundSupport() || isAirborneExempt()) {
             airTicks = 0;
             return;
         }
@@ -137,9 +137,12 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     private boolean isNormalAirborneSimulation() {
         return useNormalAirborneThresholds
                 && !isAirborneExempt()
-                && !player.onGround
-                && !player.lastOnGround
+                && !hasReliableGroundSupport()
                 && (airTicks >= normalAirborneMinTicks || player.actualMovement.getY() > normalAirborneVerticalSpeed);
+    }
+
+    private boolean hasReliableGroundSupport() {
+        return player.onGround && !player.mainSupportingBlockData.lastOnGroundAndNoBlock();
     }
 
     private boolean isAirborneExempt() {
