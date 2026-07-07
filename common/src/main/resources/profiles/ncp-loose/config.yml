@@ -74,8 +74,8 @@ Simulation:
     normal-airborne-vertical-speed: 0.42
 
 MovementSpeed:
-    max-horizontal-blocks-per-second: 10
-    max-airborne-horizontal-blocks-per-second: 10
+    max-horizontal-blocks-per-second: 20
+    max-airborne-horizontal-blocks-per-second: 20
 
 Phase:
     setbackvl: 0
