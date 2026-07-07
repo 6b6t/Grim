@@ -31,7 +31,7 @@ compatibility:
             modify-packets: true
             setbacks: false
         Flight:
-            mode: monitor
+            mode: off
             modify-packets: false
             setbacks: false
         NoSlow:

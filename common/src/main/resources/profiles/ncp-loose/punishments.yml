@@ -31,7 +31,6 @@ Punishments:
     checks:
       - "Simulation"
       - "MovementSpeed"
-      - "Flight"
       - "Phase"
       - "GroundSpoof"
       - "Timer"
