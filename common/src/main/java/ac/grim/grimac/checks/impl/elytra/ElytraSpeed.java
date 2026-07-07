@@ -5,8 +5,10 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.math.Vector3dm;
 
 @CheckData(name = "ElytraSpeed", stableKey = "grim.elytra.speed", description = "Moved too quickly while gliding", setback = 0, decay = 0.1)
 public class ElytraSpeed extends Check implements PostPredictionCheck {
@@ -33,7 +35,14 @@ public class ElytraSpeed extends Check implements PostPredictionCheck {
             return;
         }
 
-        flagWithSetback(V.write(verbose()).f64(horizontalSpeed).f64(ascendingSpeed));
+        if (flag(V.write(verbose()).f64(horizontalSpeed).f64(ascendingSpeed)) && shouldUseSetbacks()) {
+            player.fallDistance = 0;
+            SetbackTeleportUtil.SetbackPosWithVector lastKnownGoodPosition = player.getSetbackTeleportUtil().lastKnownGoodPosition;
+            if (lastKnownGoodPosition != null) {
+                lastKnownGoodPosition.setVector(new Vector3dm());
+            }
+            player.getSetbackTeleportUtil().executeNonSimulatingSetback();
+        }
     }
 
     @Override
