@@ -5,9 +5,12 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.world.Location;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "ElytraSpeed", stableKey = "grim.elytra.speed", description = "Moved too quickly while gliding", setback = 0, decay = 0.1)
@@ -46,11 +49,18 @@ public class ElytraSpeed extends Check implements PacketCheck {
         }
 
         if (shouldModifyPackets()) {
-            packet.setLocation(clampLocation(location, deltaX, deltaY, deltaZ, horizontalSpeed));
-            event.markForReEncode(true);
-            player.fallDistance = 0;
+            applyCappedSetback(event, clampLocation(location, deltaX, deltaY, deltaZ, horizontalSpeed));
         }
         flag(V.write(verbose()).f64(horizontalSpeed).f64(ascendingSpeed));
+    }
+
+    private void applyCappedSetback(PacketReceiveEvent event, Location cappedLocation) {
+        Vector3d cappedPosition = new Vector3d(cappedLocation.getX(), cappedLocation.getY(), cappedLocation.getZ());
+        player.getSetbackTeleportUtil().lastKnownGoodPosition = new SetbackTeleportUtil.SetbackPosWithVector(cappedPosition, new Vector3dm());
+        player.getSetbackTeleportUtil().executeNonSimulatingSetback();
+        player.fallDistance = 0;
+        event.setCancelled(true);
+        player.onPacketCancel();
     }
 
     private Location clampLocation(Location location, double deltaX, double deltaY, double deltaZ, double horizontalSpeed) {
