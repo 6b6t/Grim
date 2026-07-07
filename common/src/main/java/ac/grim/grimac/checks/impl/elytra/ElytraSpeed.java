@@ -39,10 +39,20 @@ public class ElytraSpeed extends Check implements PostPredictionCheck {
             player.fallDistance = 0;
             SetbackTeleportUtil.SetbackPosWithVector lastKnownGoodPosition = player.getSetbackTeleportUtil().lastKnownGoodPosition;
             if (lastKnownGoodPosition != null) {
-                lastKnownGoodPosition.setVector(new Vector3dm());
+                lastKnownGoodPosition.setVector(cappedVelocity(horizontalSpeed));
             }
             player.getSetbackTeleportUtil().executeNonSimulatingSetback();
         }
+    }
+
+    private Vector3dm cappedVelocity(double horizontalSpeed) {
+        double scale = horizontalSpeed > 0 ? Math.min(1, maxHorizontalSpeed / horizontalSpeed) : 0;
+        double vertical = Math.max(0, Math.min(player.actualMovement.getY(), maxAscendingSpeed));
+        return new Vector3dm(
+                player.actualMovement.getX() * scale,
+                vertical,
+                player.actualMovement.getZ() * scale
+        );
     }
 
     @Override
