@@ -30,6 +30,10 @@ compatibility:
             mode: enforce
             modify-packets: true
             setbacks: false
+        Flight:
+            mode: enforce
+            modify-packets: true
+            setbacks: true
         NoSlow:
             mode: off
             modify-packets: false
@@ -67,6 +71,12 @@ Simulation:
 
 MovementSpeed:
     max-horizontal-blocks-per-second: 60
+
+Flight:
+    min-air-ticks: 6
+    vertical-advantage-threshold: 0.08
+    hover-vertical-speed: 0.04
+    max-hover-ticks: 4
 
 Phase:
     setbackvl: 0
