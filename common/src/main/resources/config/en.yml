@@ -123,25 +123,18 @@ Simulation:
     # Keep Grim's normal strict simulation thresholds while the player is in or near liquid,
     # even if a compatibility profile loosens general movement simulation.
     use-normal-fluid-thresholds: true
+    # Keep Grim's normal strict simulation thresholds after sustained unsupported airborne movement.
+    # This lets Simulation handle flight/hovering instead of a separate flight movement check.
+    use-normal-airborne-thresholds: true
+    # 20 ticks is roughly 1 second.
+    normal-airborne-min-ticks: 20
+    # Also apply normal Simulation thresholds immediately if upward movement exceeds this velocity.
+    normal-airborne-vertical-speed: 0.42
 
 MovementSpeed:
     # Hard horizontal packet cap in blocks per second.
     # -1 disables the cap. Loose compatibility profiles can enable this to allow speed modules up to a ceiling.
     max-horizontal-blocks-per-second: -1
-
-Flight:
-    # Minimum sustained air ticks before unsupported flight movement can setback.
-    min-air-ticks: 6
-    # How much vertical movement advantage over Grim's predicted velocity is allowed before flagging.
-    vertical-advantage-threshold: 0.08
-    # Cumulative vertical advantage allowed while airborne. This prevents packet-splitting tiny vertical gains.
-    max-cumulative-advantage: 0.24
-    # Per-packet cumulative advantage decay when the player stops gaining vertical advantage.
-    advantage-decay: 0.03
-    # Absolute vertical speed treated as hovering if Grim predicted falling.
-    hover-vertical-speed: 0.04
-    # Number of hover ticks after min-air-ticks before flagging.
-    max-hover-ticks: 4
 
 # Checks to see if a player entered a block during a movement
 Phase:

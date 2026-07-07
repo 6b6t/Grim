@@ -9,6 +9,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,6 +30,10 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     private double maxCeiling;
     private double setbackViolationThreshold;
     private boolean useNormalFluidThresholds;
+    private boolean useNormalAirborneThresholds;
+    private double normalAirborneVerticalSpeed;
+    private int normalAirborneMinTicks;
+    private int airTicks;
     // Current advantage gained
     private double advantageGained = 0;
     private static final CompletePredictionEvent.Channel COMPLETE_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(CompletePredictionEvent.class);
@@ -44,11 +49,12 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
         if (COMPLETE_CHANNEL.fire(player, this, offset)) return;
 
-        boolean normalFluidSimulation = isNormalFluidSimulation();
-        double activeThreshold = normalFluidSimulation ? NORMAL_THRESHOLD : threshold;
-        double activeImmediateSetbackThreshold = normalFluidSimulation ? NORMAL_IMMEDIATE_SETBACK_THRESHOLD : immediateSetbackThreshold;
-        double activeMaxAdvantage = normalFluidSimulation ? NORMAL_MAX_ADVANTAGE : maxAdvantage;
-        double activeSetbackViolationThreshold = normalFluidSimulation ? NORMAL_SETBACK_VIOLATION_THRESHOLD : setbackViolationThreshold;
+        updateAirTicks();
+        boolean normalSimulation = isNormalFluidSimulation() || isNormalAirborneSimulation();
+        double activeThreshold = normalSimulation ? NORMAL_THRESHOLD : threshold;
+        double activeImmediateSetbackThreshold = normalSimulation ? NORMAL_IMMEDIATE_SETBACK_THRESHOLD : immediateSetbackThreshold;
+        double activeMaxAdvantage = normalSimulation ? NORMAL_MAX_ADVANTAGE : maxAdvantage;
+        double activeSetbackViolationThreshold = normalSimulation ? NORMAL_SETBACK_VIOLATION_THRESHOLD : setbackViolationThreshold;
 
         if ((offset >= activeThreshold || offset >= activeImmediateSetbackThreshold)) {
             advantageGained += offset;
@@ -119,6 +125,45 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                 || player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1)));
     }
 
+    private void updateAirTicks() {
+        if (player.onGround || player.lastOnGround || isAirborneExempt()) {
+            airTicks = 0;
+            return;
+        }
+
+        airTicks++;
+    }
+
+    private boolean isNormalAirborneSimulation() {
+        return useNormalAirborneThresholds
+                && !isAirborneExempt()
+                && !player.onGround
+                && !player.lastOnGround
+                && (airTicks >= normalAirborneMinTicks || player.actualMovement.getY() > normalAirborneVerticalSpeed);
+    }
+
+    private boolean isAirborneExempt() {
+        return player.getSetbackTeleportUtil().blockOffsets
+                || player.inVehicle()
+                || player.isFlying
+                || player.canFly
+                || player.isGliding
+                || player.gamemode == GameMode.CREATIVE
+                || player.gamemode == GameMode.SPECTATOR
+                || player.isClimbing
+                || player.wasTouchingWater
+                || player.wasTouchingLava
+                || player.isSwimming
+                || player.wasSwimming
+                || player.compensatedEntities.getSlowFallingAmplifier().isPresent()
+                || player.riptideSpinAttackTicks > 0
+                || player.predictedVelocity.isKnockback()
+                || player.predictedVelocity.isExplosion()
+                || player.predictedVelocity.isTrident()
+                || player.uncertaintyHandler.lastTeleportTicks.hasOccurredSince(2)
+                || player.uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(5);
+    }
+
     @Override
     public void onReload(ConfigManager config) {
         setbackDecayMultiplier = config.getDoubleElse("Simulation.setback-decay-multiplier", 0.999);
@@ -128,11 +173,14 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
         setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
         useNormalFluidThresholds = config.getBooleanElse("Simulation.use-normal-fluid-thresholds", true);
+        useNormalAirborneThresholds = config.getBooleanElse("Simulation.use-normal-airborne-thresholds", true);
+        normalAirborneMinTicks = config.getIntElse("Simulation.normal-airborne-min-ticks", 20);
+        normalAirborneVerticalSpeed = config.getDoubleElse("Simulation.normal-airborne-vertical-speed", 0.42);
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
     }
 
     public boolean doesOffsetFlag(double offset) {
-        return offset >= (isNormalFluidSimulation() ? NORMAL_THRESHOLD : threshold);
+        return offset >= (isNormalFluidSimulation() || isNormalAirborneSimulation() ? NORMAL_THRESHOLD : threshold);
     }
 }

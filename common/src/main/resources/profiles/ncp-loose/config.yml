@@ -31,11 +31,7 @@ compatibility:
             modify-packets: true
             setbacks: false
         Flight:
-            mode: enforce
-            modify-packets: true
-            setbacks: true
-        FlightPlaceholder:
-            mode: off
+            mode: monitor
             modify-packets: false
             setbacks: false
         NoSlow:
@@ -73,17 +69,12 @@ Simulation:
     max-advantage: 8
     setback-violation-threshold: 6
     use-normal-fluid-thresholds: true
+    use-normal-airborne-thresholds: true
+    normal-airborne-min-ticks: 20
+    normal-airborne-vertical-speed: 0.42
 
 MovementSpeed:
     max-horizontal-blocks-per-second: 60
-
-Flight:
-    min-air-ticks: 6
-    vertical-advantage-threshold: 0.08
-    max-cumulative-advantage: 0.24
-    advantage-decay: 0.03
-    hover-vertical-speed: 0.04
-    max-hover-ticks: 4
 
 Phase:
     setbackvl: 0
