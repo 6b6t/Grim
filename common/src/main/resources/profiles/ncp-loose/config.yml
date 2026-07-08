@@ -7,13 +7,13 @@ config-version: 11
 compatibility:
     profile: ncp-loose
     gameplay:
-        mode: monitor
-        modify-packets: false
-        setbacks: false
+        mode: enforce
+        modify-packets: true
+        setbacks: true
     safety:
         mode: enforce
     checks:
-        # NCP allowed many combat/build/client modules, but movement hacks were still bounded by cancel/setback.
+        # NCP allowed some combat/build/client behavior, but movement hacks should still be bounded by cancel/setback.
         Simulation:
             mode: enforce
             modify-packets: true
@@ -29,10 +29,6 @@ compatibility:
         MovementSpeed:
             mode: enforce
             modify-packets: true
-            setbacks: false
-        Flight:
-            mode: off
-            modify-packets: false
             setbacks: false
         NoSlow:
             mode: off

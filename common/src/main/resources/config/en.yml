@@ -57,7 +57,7 @@ disable-default-resync-handler: false
 
 # Compatibility enforcement profile.
 # strict keeps Grim's current enforcement behavior.
-# ncp-loose records gameplay checks but does not cancel packets or setback for those categories.
+# ncp-loose keeps gameplay enforcement enabled while applying looser thresholds and selected exemptions.
 # anarchy disables gameplay check flagging while keeping safety checks enforceable.
 compatibility:
     profile: strict

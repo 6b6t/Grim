@@ -90,7 +90,7 @@ public final class EnforcementPolicy {
         EnforcementRule baseSafety = EnforcementRule.enforce();
         EnforcementRule baseGameplay = switch (profile) {
             case STRICT -> EnforcementRule.enforce();
-            case NCP_LOOSE -> EnforcementRule.monitor();
+            case NCP_LOOSE -> EnforcementRule.enforce();
             case ANARCHY -> EnforcementRule.off();
         };
 

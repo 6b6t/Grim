@@ -24,12 +24,12 @@ class EnforcementPolicyTest {
     }
 
     @Test
-    void ncpLooseProfileMonitorsGameplayButKeepsSafetyEnforced() {
+    void ncpLooseProfileEnforcesGameplayAndSafetyByDefault() {
         EnforcementPolicy policy = policy("compatibility.profile", "ncp-loose");
 
-        assertEquals(EnforcementMode.MONITOR, policy.ruleFor("Reach", "Reach", "grim.combat.reach", CheckCategory.AUTO).mode());
-        assertFalse(policy.shouldModifyPackets("Reach", "Reach", "grim.combat.reach", CheckCategory.AUTO));
-        assertFalse(policy.shouldSetback("Reach", "Reach", "grim.combat.reach", CheckCategory.AUTO));
+        assertEquals(EnforcementMode.ENFORCE, policy.ruleFor("Reach", "Reach", "grim.combat.reach", CheckCategory.AUTO).mode());
+        assertTrue(policy.shouldModifyPackets("Reach", "Reach", "grim.combat.reach", CheckCategory.AUTO));
+        assertTrue(policy.shouldSetback("Reach", "Reach", "grim.combat.reach", CheckCategory.AUTO));
 
         assertEquals(CheckCategory.SAFETY, policy.categoryFor("BadPacketsD", "BadPacketsD", "grim.badpackets.invalid_pitch", CheckCategory.AUTO));
         assertTrue(policy.shouldModifyPackets("BadPacketsD", "BadPacketsD", "grim.badpackets.invalid_pitch", CheckCategory.AUTO));
@@ -41,25 +41,25 @@ class EnforcementPolicyTest {
         EnforcementPolicy policy = policy("compatibility.profile", "ncp-loose");
 
         assertEquals(CheckCategory.BAD_PACKETS, policy.categoryFor("BadPacketsF", "BadPacketsF", "grim.badpackets.duplicate_sprint", CheckCategory.AUTO));
-        assertEquals(EnforcementMode.MONITOR, policy.ruleFor("BadPacketsF", "BadPacketsF", "grim.badpackets.duplicate_sprint", CheckCategory.AUTO).mode());
-        assertFalse(policy.shouldModifyPackets("BadPacketsF", "BadPacketsF", "grim.badpackets.duplicate_sprint", CheckCategory.AUTO));
+        assertEquals(EnforcementMode.ENFORCE, policy.ruleFor("BadPacketsF", "BadPacketsF", "grim.badpackets.duplicate_sprint", CheckCategory.AUTO).mode());
+        assertTrue(policy.shouldModifyPackets("BadPacketsF", "BadPacketsF", "grim.badpackets.duplicate_sprint", CheckCategory.AUTO));
     }
 
     @Test
-    void categoryAndCheckOverridesCanTightenOrDisableProfileDefaults() {
+    void categoryAndCheckOverridesCanLoosenOrDisableProfileDefaults() {
         EnforcementPolicy policy = policy(
                 "compatibility.profile", "ncp-loose",
-                "compatibility.categories.combat.mode", "enforce",
-                "compatibility.categories.combat.modify-packets", true,
-                "compatibility.categories.combat.setbacks", true,
+                "compatibility.categories.combat.mode", "monitor",
+                "compatibility.categories.combat.modify-packets", false,
+                "compatibility.categories.combat.setbacks", false,
                 "compatibility.checks.Reach.mode", "off"
         );
 
         assertEquals(EnforcementMode.OFF, policy.ruleFor("Reach", "Reach", "grim.combat.reach", CheckCategory.AUTO).mode());
         assertFalse(policy.shouldModifyPackets("Reach", "Reach", "grim.combat.reach", CheckCategory.AUTO));
 
-        assertEquals(EnforcementMode.ENFORCE, policy.ruleFor("Hitboxes", "Hitboxes", "grim.combat.hitboxes", CheckCategory.AUTO).mode());
-        assertTrue(policy.shouldModifyPackets("Hitboxes", "Hitboxes", "grim.combat.hitboxes", CheckCategory.AUTO));
+        assertEquals(EnforcementMode.MONITOR, policy.ruleFor("Hitboxes", "Hitboxes", "grim.combat.hitboxes", CheckCategory.AUTO).mode());
+        assertFalse(policy.shouldModifyPackets("Hitboxes", "Hitboxes", "grim.combat.hitboxes", CheckCategory.AUTO));
     }
 
     private static EnforcementPolicy policy(Object... values) {
