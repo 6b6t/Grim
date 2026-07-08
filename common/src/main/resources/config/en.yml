@@ -120,16 +120,19 @@ Simulation:
     # Violation level threshold for setback
     # 1 for old behavior
     setback-violation-threshold: 1
-    # Keep Grim's normal strict simulation thresholds while the player is in or near liquid,
-    # even if a compatibility profile loosens general movement simulation.
-    use-normal-fluid-thresholds: true
-    # Keep Grim's normal strict simulation thresholds after sustained unsupported airborne movement.
-    # This lets Simulation handle flight/hovering instead of a separate flight movement check.
-    use-normal-airborne-thresholds: true
-    # 20 ticks is roughly 1 second.
+    # Grim uses normal strict Simulation thresholds for checked movement unless the player is
+    # using elytra or moving on reliably supported ground below these limits.
+    # If a player claims ground without support this many blocks below them, use strict thresholds.
+    normal-ground-distance: 1.5
+    # If a player is unsupported for this many ticks, use strict thresholds even if they claim ground.
+    # 20 ticks is roughly 1 second. Use -1 to disable this gate.
     normal-airborne-min-ticks: 20
-    # Also apply normal Simulation thresholds immediately if upward movement exceeds this velocity.
-    normal-airborne-vertical-speed: 0.42
+    # If unsupported movement accumulates this many blocks, use strict thresholds even if they claim ground.
+    # Use -1 to disable this gate.
+    normal-accumulated-movement: 4
+    # If movement in a single tick reaches this many blocks, use strict thresholds even on ground.
+    # Use -1 to disable this gate.
+    normal-movement-speed: 0.75
 
 MovementSpeed:
     # Hard horizontal packet cap in blocks per second.

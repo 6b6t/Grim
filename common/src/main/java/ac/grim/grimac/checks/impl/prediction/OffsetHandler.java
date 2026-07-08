@@ -9,6 +9,8 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,11 +31,12 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     private double maxAdvantage;
     private double maxCeiling;
     private double setbackViolationThreshold;
-    private boolean useNormalFluidThresholds;
-    private boolean useNormalAirborneThresholds;
-    private double normalAirborneVerticalSpeed;
+    private double normalGroundDistance;
+    private double normalAccumulatedMovement;
+    private double normalMovementSpeed;
     private int normalAirborneMinTicks;
-    private int airTicks;
+    private int unsupportedTicks;
+    private double unsupportedMovement;
     // Current advantage gained
     private double advantageGained = 0;
     private static final CompletePredictionEvent.Channel COMPLETE_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(CompletePredictionEvent.class);
@@ -49,8 +52,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
         if (COMPLETE_CHANNEL.fire(player, this, offset)) return;
 
-        updateAirTicks();
-        boolean normalSimulation = isNormalFluidSimulation() || isNormalAirborneSimulation();
+        boolean normalSimulation = shouldUseNormalSimulation();
         double activeThreshold = normalSimulation ? NORMAL_THRESHOLD : threshold;
         double activeImmediateSetbackThreshold = normalSimulation ? NORMAL_IMMEDIATE_SETBACK_THRESHOLD : immediateSetbackThreshold;
         double activeMaxAdvantage = normalSimulation ? NORMAL_MAX_ADVANTAGE : maxAdvantage;
@@ -115,54 +117,50 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         player.uncertaintyHandler.lastVerticalOffset = 0;
     }
 
-    private boolean isNormalFluidSimulation() {
-        return useNormalFluidThresholds
-                && !player.inVehicle()
-                && !player.isFlying
-                && !player.isGliding
-                && (player.wasTouchingWater
-                || player.wasTouchingLava
-                || player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1)));
+    private boolean shouldUseNormalSimulation() {
+        boolean exempt = isSimulationExempt();
+        updateUnsupportedMovement(exempt);
+        return !exempt && !isGroundMovementExempt();
     }
 
-    private void updateAirTicks() {
-        if (hasReliableGroundSupport() || isAirborneExempt()) {
-            airTicks = 0;
+    private void updateUnsupportedMovement(boolean exempt) {
+        if (exempt || hasReliableGroundSupport()) {
+            unsupportedTicks = 0;
+            unsupportedMovement = 0;
             return;
         }
 
-        airTicks++;
-    }
-
-    private boolean isNormalAirborneSimulation() {
-        return useNormalAirborneThresholds
-                && !isAirborneExempt()
-                && !hasReliableGroundSupport()
-                && (airTicks >= normalAirborneMinTicks || player.actualMovement.getY() > normalAirborneVerticalSpeed);
+        unsupportedTicks++;
+        unsupportedMovement += player.actualMovement.length();
     }
 
     private boolean hasReliableGroundSupport() {
         return player.onGround && !player.mainSupportingBlockData.lastOnGroundAndNoBlock();
     }
 
-    private boolean isAirborneExempt() {
+    private boolean isGroundMovementExempt() {
+        if (!player.onGround) return false;
+        if (isTooFarAboveGround()) return false;
+        if (normalAirborneMinTicks > 0 && unsupportedTicks >= normalAirborneMinTicks) return false;
+        if (normalAccumulatedMovement > 0 && unsupportedMovement >= normalAccumulatedMovement) return false;
+        return normalMovementSpeed <= 0 || player.actualMovement.length() < normalMovementSpeed;
+    }
+
+    private boolean isTooFarAboveGround() {
+        if (normalGroundDistance <= 0 || hasReliableGroundSupport()) return false;
+
+        SimpleCollisionBox groundSearch = player.boundingBox.copy().expandMin(0, -normalGroundDistance, 0);
+        return Collisions.isEmpty(player, groundSearch);
+    }
+
+    private boolean isSimulationExempt() {
         return player.getSetbackTeleportUtil().blockOffsets
-                || player.inVehicle()
                 || player.isFlying
                 || player.canFly
                 || player.isGliding
+                || player.wasGliding
                 || player.gamemode == GameMode.CREATIVE
                 || player.gamemode == GameMode.SPECTATOR
-                || player.isClimbing
-                || player.wasTouchingWater
-                || player.wasTouchingLava
-                || player.isSwimming
-                || player.wasSwimming
-                || player.compensatedEntities.getSlowFallingAmplifier().isPresent()
-                || player.riptideSpinAttackTicks > 0
-                || player.predictedVelocity.isKnockback()
-                || player.predictedVelocity.isExplosion()
-                || player.predictedVelocity.isTrident()
                 || player.uncertaintyHandler.lastTeleportTicks.hasOccurredSince(2)
                 || player.uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(5);
     }
@@ -175,15 +173,15 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
         setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
-        useNormalFluidThresholds = config.getBooleanElse("Simulation.use-normal-fluid-thresholds", true);
-        useNormalAirborneThresholds = config.getBooleanElse("Simulation.use-normal-airborne-thresholds", true);
+        normalGroundDistance = config.getDoubleElse("Simulation.normal-ground-distance", 1.5);
         normalAirborneMinTicks = config.getIntElse("Simulation.normal-airborne-min-ticks", 20);
-        normalAirborneVerticalSpeed = config.getDoubleElse("Simulation.normal-airborne-vertical-speed", 0.42);
+        normalAccumulatedMovement = config.getDoubleElse("Simulation.normal-accumulated-movement", 4);
+        normalMovementSpeed = config.getDoubleElse("Simulation.normal-movement-speed", 0.75);
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
     }
 
     public boolean doesOffsetFlag(double offset) {
-        return offset >= (isNormalFluidSimulation() || isNormalAirborneSimulation() ? NORMAL_THRESHOLD : threshold);
+        return offset >= (isSimulationExempt() || isGroundMovementExempt() ? threshold : NORMAL_THRESHOLD);
     }
 }

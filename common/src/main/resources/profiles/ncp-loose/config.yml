@@ -68,10 +68,10 @@ Simulation:
     immediate-setback-threshold: 0.85
     max-advantage: 8
     setback-violation-threshold: 6
-    use-normal-fluid-thresholds: true
-    use-normal-airborne-thresholds: true
+    normal-ground-distance: 1.5
     normal-airborne-min-ticks: 1
-    normal-airborne-vertical-speed: 0.42
+    normal-accumulated-movement: 1
+    normal-movement-speed: 0.75
 
 MovementSpeed:
     max-horizontal-blocks-per-second: 30
