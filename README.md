@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This repository has moved to **[git.6b6t.org/6b6t/Grim](https://git.6b6t.org/6b6t/Grim)**. This GitHub copy is archived and no longer updated.
+
 <div align="center">
  <h1>GrimAC</h1>
 
